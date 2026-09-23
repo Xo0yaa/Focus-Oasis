@@ -1,10 +1,6 @@
-# Weekly Increment Report (template)
+# Weekly Increment Report 
 
-Copy this into your project repository as `REPORT.md` (and keep it in your
-workspace `project/`). Fill it in each week and submit the link. Keep it honest
-and specific: this is graded on what it shows about your week of work.
-
-## Week of: (date)
+## Week of: (09.23.26)
 
 ## What changed this week
 
