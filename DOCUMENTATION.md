@@ -10,9 +10,8 @@ Follow these steps to run the application from scratch on your local machine:
 
 -Flutter & Dart Versions: Built using Flutter 3.x and Dart 3.x.
 
-STEP 1 (Clone the Repository_:
-git clone https://github.com/HAU-6ADET/student-6ADET-2125-Xo0yaa.git
-cd student-6ADET-2125-Xo0yaa
+STEP 1 (Clone the Repository):
+git clone <repository_url>
 
 STEP 2 (Install Dependencies):
 flutter pub get
