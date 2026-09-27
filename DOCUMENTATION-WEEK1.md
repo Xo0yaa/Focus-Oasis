@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Focus Oasis is a gamified Pomodoro focus application designed to help students and productivity-driven individuals manage their study sessions and maintain high focus. The app combines a clean distraction-free countdown timer with a virtual garden ecosystem where users earn Water Points to grow virtual plants and unlock items in the shop.
+Focus Oasis is a gamified productivity and Pomodoro focus web application built for students and professionals looking to manage study sessions while nurturing a virtual garden. The application combines a customizable focus timer, persistent task tracking, and reward-based user progression to make deep work engaging and rewarding.
 
 ## 2. Setup and installation
 
