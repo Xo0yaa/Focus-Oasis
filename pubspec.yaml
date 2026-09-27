@@ -1,27 +1,23 @@
-# Every Flutter project has one of these. It names your app, sets the Dart
-# version it needs, and lists the packages you depend on.
-# Add a package with: flutter pub add <name>
-name: final_project
-description: My 6ADET final project.
+name: focus_oasis
+description: Focus Oasis — a Pomodoro timer with a garden you grow by staying focused.
 publish_to: "none"
-version: 1.0.0+1
+version: 0.1.0
 
 environment:
-  sdk: ^3.8.0
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   google_fonts: ^6.2.1
-  device_preview: ^1.2.0
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
-  # Put images, fonts and sounds in assets/ and list them here, for example:
-  # assets:
-  #   - assets/images/
+ # assets:
+ #   - assets/images/

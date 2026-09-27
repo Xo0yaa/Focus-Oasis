@@ -1,131 +1,92 @@
-<!--
-  This is your project's front page. Replace every placeholder below.
-  It is the first thing your instructor and any future employer will read, and
-  the live link in it is how your project gets opened for grading.
+# Focus Oasis — progress code
 
-  New here? Read START-HERE.md first. Delete this comment when you are done.
--->
+**Week 2 update:** added the Daily Tasks screen (screen 4). Garden (screens
+1 to 3) and Tasks now share the same lifted `waterPoints` state, so the
+balance chip agrees on both tabs — see "What's implemented" below. Shop is
+still a stub.
 
-# App Name
+This is a working start on the Flutter app, not the mockup. It implements
+**screens 1, 2, 3 and 4** — Home / Garden Timer, the running state, the
+Session Complete dialog, and Daily Tasks — matching `docs/02-mockup.png`
+and `docs/DESIGN_SYSTEM_V3.pdf`. Shop is a stub screen with a "coming soon"
+message so the bottom nav is runnable end to end.
 
-> One sentence: what this app does, and who it is for.
+**I could not run `flutter analyze` or `flutter run` in the environment that
+wrote this** — no Flutter/Dart SDK was available there. The code follows
+the APIs and syntax I know, and the brace/paren counts balance in every
+file, but treat it as a first draft: run `flutter pub get` then
+`flutter analyze` yourself before you trust it, and read through
+`timer_home_screen.dart` since that's where the real logic lives.
 
-**Live demo:** https://YOURUSERNAME.github.io/YOUR-REPO/ <!-- GitHub Pages is set up already; replace if you host elsewhere -->
-**Demo video:** `docs/demo.mp4` (link it here once it exists)
-**Course:** Applications Development and Emerging Technologies (6ADET), Holy Angel University
-**Author:** Your Name
+## What's implemented
 
-This repository lives in the author's own GitHub account and is public on
-purpose. There is no `student.json` here and there should not be one: see
-`docs/06-security-and-privacy.md` for what a public repo means for secrets and
-personal data.
+- `lib/theme/app_theme.dart` — the Design System v3 tokens, including the
+  restyled `WaterPointBadge` colours and the new tint tokens.
+- `lib/models/plant_model.dart` — just enough to grow a plant on Home.
+- `lib/widgets/garden_plant.dart` — the potted plant at stages 1 to 4,
+  drawn with `CustomPainter` so it doesn't need four image assets yet.
+- `lib/widgets/app_logo.dart` — the Ring Sprout mark, also `CustomPainter`
+  for the same reason. Swap for `Image.asset` once you export the PNG.
+- `lib/widgets/timer_ring_display.dart`, `timer_length_stepper.dart`,
+  `session_complete_dialog.dart`, `water_point_badge.dart` — the pieces
+  named in Design System v3 section X.
+- `lib/screens/timer_home_screen.dart` — the real Home screen:
+  `Timer.periodic` countdown, the length stepper (hidden while running),
+  pause/resume, a confirm-then-reset flow, and saving `work_duration` and
+  `water_points` to `shared_preferences`. The timer is cancelled in
+  `dispose()`, which is the memory-leak risk from the midterm journal.
+- `lib/screens/main_navigation_screen.dart` — the bottom nav. It owns
+  `waterPoints` in its own state and passes it down with a callback, which
+  is the state-lifting approach the design system and journal both call
+  out — not Provider or Riverpod, since those aren't in the course.
+- `lib/main.dart` — the `FutureBuilder` loading guard from the async
+  startup risk in the proposal.
+- **(Week 2)** `lib/models/task_model.dart` — `TaskModel` with
+  `isCompleted` and `isClaimed` as separate flags, JSON (de)serialization,
+  and three seed tasks shown the first time the app runs.
+- **(Week 2)** `lib/widgets/task_card_tile.dart` — the three states from
+  Design System v3: uncompleted, completed-and-claimable, claimed.
+- **(Week 2)** `lib/screens/tasks_screen.dart` — the real Tasks screen:
+  progress header, `ListView.builder` over the task list, an add-task
+  dialog with a title field and a reward chip picker, a claim flow that
+  reports the new balance up to `MainNavigationScreen`, and saving
+  `user_tasks` to `shared_preferences` on every change.
 
----
+## What's not implemented yet
 
-## Screenshots
+- Botanic Shop & Inventory screen (stub only).
+- Editing or deleting a task once added.
+- A completed session doesn't auto-complete the "Focus for 25 minutes"
+  seed task — the person still has to tick it by hand. Wiring that up is
+  the obvious next increment, since `TimerHomeScreen` and `TasksScreen`
+  don't currently talk to each other at all.
+- Session history (`session_history` key) — "Today's focus" currently
+  accumulates in a single `today_focus_minutes` key that never resets at
+  midnight, and "Daily streak" is read from a key nothing increments yet.
+  Both need a real day-boundary check before they're accurate.
+- The break countdown after "Start 5 min break".
+- `audioplayers` completion chime (stretch goal).
 
-Put two or three real screenshots at phone size in `docs/assets/`, then replace
-this paragraph with them:
+## Fix applied after the first run
 
-```markdown
-| Home | Detail | Add |
-| --- | --- | --- |
-| ![Home](docs/assets/screen-home.png) | ![Detail](docs/assets/screen-detail.png) | ![Add](docs/assets/screen-add.png) |
+`flutter run` surfaced two problems, now fixed:
+
+1. **`Couldn't resolve the package 'google_fonts'`** — not a code bug. Run
+   `flutter pub get` before `flutter run` so the dependency in
+   `pubspec.yaml` actually gets fetched.
+2. **`The argument type 'CardTheme' can't be assigned to the parameter type
+   'CardThemeData?'`** — my mistake. Newer Flutter SDKs type
+   `ThemeData.cardTheme` as `CardThemeData`, not the older `CardTheme`
+   class. Fixed in `lib/theme/app_theme.dart`.
+
+Run `flutter pub get` first, every time you pull in a new dependency or
+open the project fresh, then `flutter run -d chrome` again.
+
+## Running it
+
 ```
-
-A repo without screenshots reads as abandoned, whatever the code says.
-
-## What it does
-
-Three to five bullets. What can a user actually do?
-
-- ...
-- ...
-- ...
-
-## Built with
-
-| | |
-| --- | --- |
-| Framework | Flutter (Dart) |
-| State | `setState` / provider / riverpod (say which) |
-| Storage | shared_preferences / Hive / Drift / Firebase / Supabase / other |
-| Other packages | list the ones that matter, with a word on why |
-
-## Running it yourself
-
-```bash
+flutter create . --platforms=web,android,ios   # if you haven't already got the platform folders
 flutter pub get
-cp .env.example .env      # only if your app needs keys, see below
-flutter run -d web-server --web-port 8080
+flutter analyze
+flutter run -d chrome
 ```
-
-Then open http://localhost:8080. Requires Flutter (run `flutter --version` and
-put yours here).
-
-### Environment variables
-
-This project reads its configuration from a `.env` file that is **not** in the
-repository. Copy `.env.example`, fill in your own values, and never commit the
-result.
-
-| Variable | What it is | Where to get one |
-| --- | --- | --- |
-| `EXAMPLE_API_KEY` | ... | ... |
-
-## Privacy and secrets
-
-Required section. Two or three honest sentences:
-
-- What personal data this app stores, if any, and where it goes.
-- Where the secrets live (`.env` locally, repository secrets in the deploy
-  workflow) and what protects the data on the service side (Firestore rules,
-  Supabase RLS, or "nothing leaves the device").
-- Confirm that all sample data, screenshots and the video contain **no real
-  personal information**.
-
-## Project documentation
-
-| Document | |
-| --- | --- |
-| [Proposal](docs/01-proposal.md) | the problem, the users, the scope |
-| [Mockup and wireframes](docs/02-mockup.md) | what it looks like, and the screen flow |
-| [Design system](docs/03-design-system.md) | colors, type, spacing, components |
-| [Weekly reports](docs/04-weekly-reports.md) | what happened each week |
-| [Demo video](docs/05-demo-video.md) | the recording and what it shows |
-| [Start here](START-HERE.md) | how this repo works (delete once you have read it) |
-| [Security and privacy](docs/06-security-and-privacy.md) | the checklist, filled in |
-
-## Status and what is next
-
-Be honest. What works, what is half done, what you would build next. An honest
-"known issues" section reads better than a claim the reader disproves in thirty
-seconds.
-
-## Credits
-
-- Packages: see `pubspec.yaml`
-- Assets, icons, 3D models, sounds: name the author and the licence for each
-- People who helped, and how
-
-## AI use
-
-If you used AI while building this, say so here. Honest disclosure is the
-standard in this course and increasingly outside it, and reporting heavy use
-accurately costs you nothing.
-
-This section is the last 10 points of the finals badge, and it wants three
-things:
-
-![Built with AI assistance](https://img.shields.io/badge/built%20with-AI%20assistance-0b5fff)
-
-- the badge above, or one you like better
-- a line naming which assistant you used and how much of the work it touched
-- a link to [AI-USAGE.md](AI-USAGE.md), where the full account lives
-
-Keep the detail in `AI-USAGE.md` rather than here. This section is the summary a
-visitor reads; that file is the record the badge is graded from.
-
-## Licence
-
-MIT, see [LICENSE](LICENSE). Change it if you want different terms.
