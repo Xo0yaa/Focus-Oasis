@@ -7,7 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:final_project/main.dart';
+import 'package:final_projectmain.dart';
 
 void main() {
   testWidgets('home screen shows its title and counts taps', (tester) async {

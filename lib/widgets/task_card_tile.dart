@@ -35,10 +35,11 @@ class TaskCardTile extends StatelessWidget {
               value: task.isCompleted,
               // Once claimed, the checkbox can't be unchecked — the reward
               // is already banked, so undoing it would need to claw the
-              // points back, which breaks the flow.
+              // points back. Simplest to just lock it.
               onChanged: task.isClaimed ? null : onToggle,
               activeColor: AppTheme.secondaryColor,
               checkColor: AppTheme.textColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(
@@ -49,7 +50,7 @@ class TaskCardTile extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xs),
                   Row(
                     children: [
-                      const Icon(Icons.water_drop, size: 12, color: AppTheme.accentWater),
+                      Icon(Icons.water_drop, size: 12, color: AppTheme.accentWater),
                       const SizedBox(width: AppSpacing.xs),
                       Text('+${task.rewardPoints} Water Points', style: OasisTextTheme.labelSmall),
                     ],
@@ -57,39 +58,29 @@ class TaskCardTile extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            if (task.isCompleted && !task.isClaimed)
-              ElevatedButton(
-                onPressed: onClaim,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.secondaryColor,
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text('Claim'),
-              )
-            else if (task.isClaimed)
+            if (task.isClaimed)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
-                decoration: BoxDecoration(color: AppTheme.secondaryColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+                decoration: BoxDecoration(color: AppTheme.secondaryColor, borderRadius: BorderRadius.circular(8)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.check, size: 12, color: AppTheme.textColor),
+                    Icon(Icons.check, size: 12, color: AppTheme.textColor),
                     const SizedBox(width: 4),
                     Text('Claimed', style: OasisTextTheme.labelSmall.copyWith(color: AppTheme.textColor)),
                   ],
                 ),
               )
-            else
-              OutlinedButton(
-                onPressed: null,
-                style: OutlinedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  side: BorderSide.none,
+            else if (task.isCompleted)
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.secondaryColor,
+                  foregroundColor: AppTheme.textColor,
+                  minimumSize: const Size(0, 40),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 ),
-                child: const Text(''),
+                onPressed: onClaim,
+                child: const Text('Claim'),
               ),
           ],
         ),

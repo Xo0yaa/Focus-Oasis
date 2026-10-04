@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../../theme/app_theme.dart';
+import '../theme/app_theme.dart';
 
 /// The "Ring Sprout" mark: a Pomodoro ring with a seedling growing inside
 /// it. See docs/logos/logo-1-ring-sprout.svg for the source design and

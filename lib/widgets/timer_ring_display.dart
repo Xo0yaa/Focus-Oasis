@@ -11,6 +11,7 @@ class TimerRingDisplay extends StatelessWidget {
   final String timeLabel;
   final String subLabel;
   final int stage;
+  final String species;
 
   const TimerRingDisplay({
     super.key,
@@ -18,6 +19,7 @@ class TimerRingDisplay extends StatelessWidget {
     required this.timeLabel,
     required this.subLabel,
     required this.stage,
+    this.species = 'sampaguita',
   });
 
   static const double _diameter = 264;
@@ -57,7 +59,7 @@ class TimerRingDisplay extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              GardenPlant(stage: stage, size: 56),
+              GardenPlant(stage: stage, species: species, size: 56),
               const SizedBox(height: AppSpacing.xs),
               Text(timeLabel, style: OasisTextTheme.displayLarge),
               Text(subLabel, style: OasisTextTheme.labelSmall),
