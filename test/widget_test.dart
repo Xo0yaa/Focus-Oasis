@@ -7,13 +7,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:final_projectmain.dart';
+import 'package:focus_oasis/main.dart';
 
 void main() {
   testWidgets('home screen shows its title and counts taps', (tester) async {
-    // Build the app. Note we build MyApp directly, not the DevicePreview
+    // Build the app. Note we build the root app directly, not the DevicePreview
     // wrapper, because a test does not need the phone frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const FocusOasisApp());
 
     expect(find.text('It works'), findsOneWidget);
     expect(find.text('Taps: 0'), findsOneWidget);

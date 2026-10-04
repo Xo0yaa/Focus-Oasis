@@ -48,13 +48,13 @@ class _ShopScreenState extends State<ShopScreen> {
 
   List<PlantModel> _loadCatalog() {
     final raw = widget.prefs.getString(_kInventory);
-    if (raw == null || raw.isEmpty) return PlantModel.starterCatalog();
+    if (raw == null || raw.isEmpty) return List.of(PlantModel.starterCatalog());
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
       final list = decoded.map((e) => PlantModel.fromJson(e as Map<String, dynamic>)).toList();
-      return list.isEmpty ? PlantModel.starterCatalog() : list;
+      return list.isEmpty ? List.of(PlantModel.starterCatalog()) : list;
     } catch (_) {
-      return PlantModel.starterCatalog();
+      return List.of(PlantModel.starterCatalog());
     }
   }
 
@@ -64,6 +64,9 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Future<void> _buy(PlantModel plant) async {
+    // FIX: re-check balance even though the button is disabled when unaffordable
+    if (widget.waterPoints < plant.cost) return;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -75,15 +78,21 @@ class _ShopScreenState extends State<ShopScreen> {
         ],
       ),
     );
-    if (confirmed != true) return;
+    if (confirmed != true || !mounted) return;
+
+    final newBalance = widget.waterPoints - plant.cost;
 
     setState(() {
-      final i = _catalog.indexWhere((p) => p.id == plant.id);
-      _catalog[i] = plant.copyWith(isUnlocked: true, isNew: true);
+      // FIX: build a new list instead of mutating in place
+      _catalog = _catalog
+          .map((p) => p.id == plant.id ? p.copyWith(isUnlocked: true, isNew: true) : p)
+          .toList();
     });
-    await _saveCatalog();
-    final newBalance = widget.waterPoints - plant.cost;
+
+    // Lift the new balance first so every tab's badge updates immediately
     widget.onWaterPointsChanged(newBalance);
+
+    await _saveCatalog();
     await widget.prefs.setInt('water_points', newBalance);
   }
 

@@ -57,13 +57,14 @@ class PlantModel {
   /// plant in the shop catalog has a record" note. Sampaguita starts
   /// unlocked and placed, since it's the plant shown on Home before the
   /// player has bought anything.
-  static List<PlantModel> starterCatalog() => const [
-        PlantModel(id: 'sampaguita', name: 'Sampaguita', rarity: 'Common', cost: 0, isUnlocked: true, isPlaced: true),
-        PlantModel(id: 'sunflower', name: 'Sunflower', rarity: 'Common', cost: 0, isUnlocked: true),
-        PlantModel(id: 'rose', name: 'Rose', rarity: 'Common', cost: 100),
-        PlantModel(id: 'lavender', name: 'Lavender', rarity: 'Common', cost: 150),
-        PlantModel(id: 'tulip', name: 'Tulip', rarity: 'Rare', cost: 200),
-        PlantModel(id: 'bonsai', name: 'Bonsai', rarity: 'Legendary', cost: 500),
+  // FIX: list is growable (was const = unmodifiable)
+  static List<PlantModel> starterCatalog() => [
+        const PlantModel(id: 'sampaguita', name: 'Sampaguita', rarity: 'Common', cost: 0, isUnlocked: true, isPlaced: true),
+        const PlantModel(id: 'sunflower', name: 'Sunflower', rarity: 'Common', cost: 0, isUnlocked: true),
+        const PlantModel(id: 'rose', name: 'Rose', rarity: 'Common', cost: 100),
+        const PlantModel(id: 'lavender', name: 'Lavender', rarity: 'Common', cost: 150),
+        const PlantModel(id: 'tulip', name: 'Tulip', rarity: 'Rare', cost: 200),
+        const PlantModel(id: 'bonsai', name: 'Bonsai', rarity: 'Legendary', cost: 500),
       ];
 }
 

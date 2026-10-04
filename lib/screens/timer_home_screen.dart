@@ -10,17 +10,23 @@ import '../widgets/session_complete_dialog.dart';
 import '../widgets/timer_length_stepper.dart';
 import '../widgets/timer_ring_display.dart';
 import '../widgets/water_point_badge.dart';
-import 'settings_screen.dart';
 
 enum _SessionStatus { idle, running, paused }
 
 /// The Home / Garden Timer screen: docs/02-mockup.png screens 1 to 3.
+///
+/// Owns the Timer.periodic countdown and the shared_preferences reads and
+/// writes for work_duration and water_points (see docs/PROPOSAL_V2, section
+/// IV, "What I Save Concretely"). waterPoints itself is lifted to
+/// MainNavigationScreen so the balance chip stays in sync across tabs — see
+/// the "State Lifting Without External Packages" risk in the midterm
+/// journal — this screen only reports changes upward through
+/// [onWaterPointsChanged].
 class TimerHomeScreen extends StatefulWidget {
   final SharedPreferences prefs;
   final int waterPoints;
   final ValueChanged<int> onWaterPointsChanged;
   final String activePlantId;
-  final VoidCallback? onOpenSettings;
 
   const TimerHomeScreen({
     super.key,
@@ -28,7 +34,6 @@ class TimerHomeScreen extends StatefulWidget {
     required this.waterPoints,
     required this.onWaterPointsChanged,
     required this.activePlantId,
-    this.onOpenSettings,
   });
 
   @override
@@ -56,6 +61,9 @@ class _TimerHomeScreenState extends State<TimerHomeScreen> {
 
   @override
   void dispose() {
+    // Cancel the timer here or it keeps calling setState() on an unmounted
+    // widget after navigating away — the memory-leak risk from the
+    // midterm journal, section II.
     _timer?.cancel();
     super.dispose();
   }
@@ -151,7 +159,7 @@ class _TimerHomeScreenState extends State<TimerHomeScreen> {
     setState(() => _cyclesToday += 1);
 
     if (!mounted) return;
-    await showSessionCompleteDialog(
+    final startBreak = await showSessionCompleteDialog(
       context,
       minutesFocused: _workDurationMinutes,
       pointsEarned: _pointsPerSession,
@@ -163,6 +171,11 @@ class _TimerHomeScreenState extends State<TimerHomeScreen> {
       _status = _SessionStatus.idle;
       _remainingSeconds = _workDurationMinutes * 60;
     });
+
+    if (startBreak == true) {
+      // Stretch goal: a shorter break countdown in the secondary colour.
+      // Not built yet — see Proposal V2 section III, Stretch Goals.
+    }
   }
 
   @override
@@ -183,18 +196,6 @@ class _TimerHomeScreenState extends State<TimerHomeScreen> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: 'Settings',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-          ),
           Padding(
             padding: const EdgeInsets.only(right: AppSpacing.lg),
             child: WaterPointBadge(points: widget.waterPoints),
@@ -205,88 +206,85 @@ class _TimerHomeScreenState extends State<TimerHomeScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              // 1. Top Plant Status Card
               _PlantProgressCard(
                 stage: _plantStage,
                 progress: isIdle ? 0 : 1 - _progress,
                 species: widget.activePlantId,
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: AppSpacing.md),
-                      TimerRingDisplay(
-                        progress: _progress,
-                        timeLabel: _timeLabel,
-                        subLabel: 'Focus session',
-                        stage: _plantStage,
-                        species: widget.activePlantId,
+              
+              // 2. Middle Timer Ring
+              TimerRingDisplay(
+                progress: _progress,
+                timeLabel: _timeLabel,
+                subLabel: 'Focus session',
+                stage: _plantStage,
+                species: widget.activePlantId,
+              ),
+
+              // 3. Cycle Text placed right between Timer and Control Panel
+              Text('Cycle ${_cyclesToday + 1} of 4', style: OasisTextTheme.labelSmall),
+
+              // 4. Bottom Controls & Stats Panel
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isIdle) ...[
+                    TimerLengthStepper(minutes: _workDurationMinutes, onChanged: _setWorkDuration),
+                    const SizedBox(height: 12),
+                  ],
+                  if (isIdle)
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _start,
+                        icon: const Icon(Icons.play_arrow),
+                        label: const Text('Start Session'),
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text('Cycle ${_cyclesToday + 1} of 4', style: OasisTextTheme.labelSmall),
-                      
-                      // Repositioned controls directly underneath the ring
-                      const SizedBox(height: AppSpacing.md),
-                      if (isIdle) ...[
-                        TimerLengthStepper(minutes: _workDurationMinutes, onChanged: _setWorkDuration),
-                        const SizedBox(height: AppSpacing.md),
-                        SizedBox(
-                          width: double.infinity,
+                    )
+                  else
+                    Row(
+                      children: [
+                        Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: _start,
-                            icon: const Icon(Icons.play_arrow),
-                            label: const Text('Start Session'),
+                            onPressed: _pauseOrResume,
+                            icon: Icon(isRunning ? Icons.pause : Icons.play_arrow),
+                            label: Text(isRunning ? 'Pause' : 'Resume'),
                           ),
                         ),
-                      ] else ...[
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _pauseOrResume,
-                                icon: Icon(isRunning ? Icons.pause : Icons.play_arrow),
-                                label: Text(isRunning ? 'Pause' : 'Resume'),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            OutlinedButton.icon(
-                              onPressed: _reset,
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Reset'),
-                            ),
-                          ],
+                        const SizedBox(width: AppSpacing.sm),
+                        OutlinedButton.icon(
+                          onPressed: _reset,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Reset'),
                         ),
                       ],
-
-                      const SizedBox(height: AppSpacing.md),
-                      
-                      // Bottom Statistics Row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _StatCard(
-                              icon: Icons.access_time,
-                              iconColor: AppTheme.accentWater,
-                              label: "Today's focus",
-                              value: '${_todayFocusMinutes ~/ 60} hr ${_todayFocusMinutes % 60} min',
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: _StatCard(
-                              icon: Icons.local_fire_department,
-                              iconColor: AppTheme.accentSun,
-                              label: 'Daily streak',
-                              value: '$_dailyStreak days',
-                            ),
-                          ),
-                        ],
+                    ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          icon: Icons.access_time,
+                          iconColor: AppTheme.accentWater,
+                          label: "Today's focus",
+                          value: '${_todayFocusMinutes ~/ 60} hr ${_todayFocusMinutes % 60} min',
+                        ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: _StatCard(
+                          icon: Icons.local_fire_department,
+                          iconColor: AppTheme.accentSun,
+                          label: 'Daily streak',
+                          value: '$_dailyStreak days',
+                        ),
+                      ),
                     ],
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -302,6 +300,9 @@ class _PlantProgressCard extends StatelessWidget {
   final String species;
   const _PlantProgressCard({required this.stage, required this.progress, required this.species});
 
+  /// Looks the active plant's display name up in the catalog. Falls back
+  /// to the species id (capitalized) if it's ever missing, so a bad or
+  /// stale `active_plant_id` can't crash this screen.
   String get _plantName {
     final match = PlantModel.starterCatalog().where((p) => p.id == species);
     if (match.isEmpty) return species[0].toUpperCase() + species.substring(1);
@@ -311,7 +312,7 @@ class _PlantProgressCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(top: AppSpacing.sm),
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(

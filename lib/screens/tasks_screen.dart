@@ -8,12 +8,6 @@ import '../widgets/task_card_tile.dart';
 import '../widgets/water_point_badge.dart';
 
 /// The Daily Tasks screen: docs/02-mockup.png screen 4.
-///
-/// Reads and writes `user_tasks` in shared_preferences (Proposal V2,
-/// section IV). waterPoints itself stays lifted in MainNavigationScreen —
-/// this screen only reports a claim upward through [onWaterPointsChanged],
-/// the same pattern TimerHomeScreen uses, so the balance chip agrees on
-/// both tabs.
 class TasksScreen extends StatefulWidget {
   final SharedPreferences prefs;
   final int waterPoints;
@@ -42,14 +36,13 @@ class _TasksScreenState extends State<TasksScreen> {
 
   List<TaskModel> _loadTasks() {
     final raw = widget.prefs.getString(_kTasks);
-    if (raw == null || raw.isEmpty) return TaskModel.seedTasks();
+    if (raw == null || raw.isEmpty) return List.of(TaskModel.seedTasks());
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
       final tasks = decoded.map((e) => TaskModel.fromJson(e as Map<String, dynamic>)).toList();
-      return tasks.isEmpty ? TaskModel.seedTasks() : tasks;
+      return tasks.isEmpty ? List.of(TaskModel.seedTasks()) : tasks;
     } catch (_) {
-      // Saved data didn't parse — fall back rather than crash the screen.
-      return TaskModel.seedTasks();
+      return List.of(TaskModel.seedTasks());
     }
   }
 
@@ -61,7 +54,9 @@ class _TasksScreenState extends State<TasksScreen> {
   void _toggle(TaskModel task, bool? value) {
     setState(() {
       final i = _tasks.indexWhere((t) => t.id == task.id);
-      _tasks[i] = task.copyWith(isCompleted: value ?? false);
+      if (i != -1) {
+        _tasks[i] = task.copyWith(isCompleted: value ?? false);
+      }
     });
     _saveTasks();
   }
@@ -69,7 +64,9 @@ class _TasksScreenState extends State<TasksScreen> {
   void _claim(TaskModel task) {
     setState(() {
       final i = _tasks.indexWhere((t) => t.id == task.id);
-      _tasks[i] = task.copyWith(isClaimed: true);
+      if (i != -1) {
+        _tasks[i] = task.copyWith(isClaimed: true);
+      }
     });
     _saveTasks();
     widget.onWaterPointsChanged(widget.waterPoints + task.rewardPoints);
@@ -80,7 +77,7 @@ class _TasksScreenState extends State<TasksScreen> {
     final controller = TextEditingController();
     int reward = 20;
 
-    final result = await showDialog<String>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
@@ -113,7 +110,12 @@ class _TasksScreenState extends State<TasksScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             TextButton(
-              onPressed: () => Navigator.pop(context, jsonEncode({'title': controller.text.trim(), 'reward': reward})),
+              onPressed: () {
+                final title = controller.text.trim();
+                if (title.isNotEmpty) {
+                  Navigator.pop(context, {'title': title, 'reward': reward});
+                }
+              },
               child: const Text('Add'),
             ),
           ],
@@ -121,19 +123,20 @@ class _TasksScreenState extends State<TasksScreen> {
       ),
     );
 
-    if (result == null) return;
-    final decoded = jsonDecode(result) as Map<String, dynamic>;
-    final title = decoded['title'] as String;
-    if (title.isEmpty) return;
+    if (result == null || !mounted) return;
+
+    final newTask = TaskModel(
+      id: 'task-${DateTime.now().millisecondsSinceEpoch}',
+      title: result['title'] as String,
+      rewardPoints: result['reward'] as int,
+    );
 
     setState(() {
-      _tasks.add(TaskModel(
-        id: 'task-${DateTime.now().millisecondsSinceEpoch}',
-        title: title,
-        rewardPoints: decoded['reward'] as int,
-      ));
+      // FIX: new list instead of .add() on a possibly unmodifiable list
+      _tasks = [..._tasks, newTask];
     });
-    _saveTasks();
+
+    await _saveTasks();
   }
 
   @override
@@ -161,7 +164,8 @@ class _TasksScreenState extends State<TasksScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: AppSpacing.sm),
+              // Adjusted top padding for clean balance below the App Bar
+              const SizedBox(height: AppSpacing.md),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -190,10 +194,13 @@ class _TasksScreenState extends State<TasksScreen> {
                         itemCount: _tasks.length,
                         itemBuilder: (context, i) {
                           final task = _tasks[i];
-                          return TaskCardTile(
-                            task: task,
-                            onToggle: (v) => _toggle(task, v),
-                            onClaim: () => _claim(task),
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                            child: TaskCardTile(
+                              task: task,
+                              onToggle: (v) => _toggle(task, v),
+                              onClaim: () => _claim(task),
+                            ),
                           );
                         },
                       ),

@@ -46,9 +46,10 @@ class TaskModel {
 
   /// Shown the first time the app runs, before any real tasks are saved.
   /// Matches docs/02-mockup.png screen 4.
-  static List<TaskModel> seedTasks() => const [
-        TaskModel(id: 'seed-1', title: 'Focus for 25 minutes', rewardPoints: 50),
-        TaskModel(id: 'seed-2', title: 'Plan today\'s tasks', rewardPoints: 20),
-        TaskModel(id: 'seed-3', title: 'Water your plants', rewardPoints: 20),
+  // FIX: list is growable (was const = unmodifiable)
+  static List<TaskModel> seedTasks() => [
+        const TaskModel(id: 'seed-1', title: 'Focus for 25 minutes', rewardPoints: 50),
+        const TaskModel(id: 'seed-2', title: 'Plan today\'s tasks', rewardPoints: 20),
+        const TaskModel(id: 'seed-3', title: 'Water your plants', rewardPoints: 20),
       ];
 }
