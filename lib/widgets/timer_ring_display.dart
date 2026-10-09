@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../models/plant_model.dart';
 import '../theme/app_theme.dart';
 import 'garden_plant.dart';
 
@@ -12,6 +11,7 @@ class TimerRingDisplay extends StatelessWidget {
   final String subLabel;
   final int stage;
   final String species;
+  final double diameter;
 
   const TimerRingDisplay({
     super.key,
@@ -20,21 +20,20 @@ class TimerRingDisplay extends StatelessWidget {
     required this.subLabel,
     required this.stage,
     this.species = 'sampaguita',
+    this.diameter = 264,
   });
-
-  static const double _diameter = 264;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: _diameter,
-      height: _diameter,
+      width: diameter,
+      height: diameter,
       child: Stack(
         alignment: Alignment.center,
         children: [
           SizedBox(
-            width: _diameter,
-            height: _diameter,
+            width: diameter,
+            height: diameter,
             child: CircularProgressIndicator(
               value: 1,
               strokeWidth: 12,
@@ -42,8 +41,8 @@ class TimerRingDisplay extends StatelessWidget {
             ),
           ),
           SizedBox(
-            width: _diameter,
-            height: _diameter,
+            width: diameter,
+            height: diameter,
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: progress, end: progress),
               duration: const Duration(milliseconds: 300),

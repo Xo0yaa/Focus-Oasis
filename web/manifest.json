@@ -1,11 +1,11 @@
 {
-  "name": "My Final Project",
-  "short_name": "Final Project",
+  "name": "Focus Oasis",
+  "short_name": "Focus Oasis",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#FFFFFF",
   "theme_color": "#6750A4",
-  "description": "My 6ADET final project.",
+  "description": "A Pomodoro timer where focused work grows a garden.",
   "orientation": "portrait-primary",
   "prefer_related_applications": false
 }

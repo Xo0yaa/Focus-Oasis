@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,12 +13,14 @@ class TasksScreen extends StatefulWidget {
   final SharedPreferences prefs;
   final int waterPoints;
   final ValueChanged<int> onWaterPointsChanged;
+  final VoidCallback onProgressChanged;
 
   const TasksScreen({
     super.key,
     required this.prefs,
     required this.waterPoints,
     required this.onWaterPointsChanged,
+    required this.onProgressChanged,
   });
 
   @override
@@ -26,12 +29,94 @@ class TasksScreen extends StatefulWidget {
 
 class _TasksScreenState extends State<TasksScreen> {
   static const _kTasks = 'user_tasks';
+  static const _kTasksResetDate = 'tasks_reset_date';
   late List<TaskModel> _tasks;
+  Timer? _dailyResetTimer;
+  bool _isResettingTasks = false;
+  bool _isRefreshingFocusTasks = false;
 
   @override
   void initState() {
     super.initState();
     _tasks = _loadTasks();
+    unawaited(_updateDailyTaskState());
+    _dailyResetTimer = Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => unawaited(_updateDailyTaskState()),
+    );
+  }
+
+  Future<void> _updateDailyTaskState() async {
+    await _resetTasksForNewDay();
+    await _refreshFocusVerifiedTasks();
+  }
+
+  String _localDateKey() {
+    final now = DateTime.now();
+    final month = now.month.toString().padLeft(2, '0');
+    final day = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$month-$day';
+  }
+
+  Future<void> _resetTasksForNewDay() async {
+    if (_isResettingTasks) return;
+    _isResettingTasks = true;
+    try {
+      final today = _localDateKey();
+      final lastReset = widget.prefs.getString(_kTasksResetDate);
+      if (lastReset == null) {
+        await widget.prefs.setInt('today_focus_minutes', 0);
+        await widget.prefs.setString(_kTasksResetDate, today);
+        widget.onProgressChanged();
+        return;
+      }
+      if (lastReset == today || !mounted) return;
+
+      setState(() {
+        _tasks = _tasks
+            .map((task) => task.copyWith(isCompleted: false, isClaimed: false))
+            .toList();
+      });
+      await widget.prefs.setInt('today_focus_minutes', 0);
+      await widget.prefs.setString(
+        _kTasks,
+        jsonEncode(_tasks.map((task) => task.toJson()).toList()),
+      );
+      await widget.prefs.setString(_kTasksResetDate, today);
+      widget.onProgressChanged();
+    } finally {
+      _isResettingTasks = false;
+    }
+  }
+
+  Future<void> _refreshFocusVerifiedTasks() async {
+    if (_isRefreshingFocusTasks) return;
+    _isRefreshingFocusTasks = true;
+    try {
+      final focusedMinutes = widget.prefs.getInt('today_focus_minutes') ?? 0;
+      var changed = false;
+      final updatedTasks = _tasks.map((task) {
+        final requiredMinutes = task.requiredFocusMinutes;
+        if (requiredMinutes == null || task.isClaimed) return task;
+        final isComplete = focusedMinutes >= requiredMinutes;
+        if (task.isCompleted == isComplete) return task;
+        changed = true;
+        return task.copyWith(isCompleted: isComplete);
+      }).toList();
+
+      if (changed && mounted) {
+        setState(() => _tasks = updatedTasks);
+        await _saveTasks();
+      }
+    } finally {
+      _isRefreshingFocusTasks = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    _dailyResetTimer?.cancel();
+    super.dispose();
   }
 
   List<TaskModel> _loadTasks() {
@@ -39,7 +124,9 @@ class _TasksScreenState extends State<TasksScreen> {
     if (raw == null || raw.isEmpty) return List.of(TaskModel.seedTasks());
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
-      final tasks = decoded.map((e) => TaskModel.fromJson(e as Map<String, dynamic>)).toList();
+      final tasks = decoded
+          .map((e) => TaskModel.fromJson(e as Map<String, dynamic>))
+          .toList();
       return tasks.isEmpty ? List.of(TaskModel.seedTasks()) : tasks;
     } catch (_) {
       return List.of(TaskModel.seedTasks());
@@ -49,9 +136,11 @@ class _TasksScreenState extends State<TasksScreen> {
   Future<void> _saveTasks() async {
     final raw = jsonEncode(_tasks.map((t) => t.toJson()).toList());
     await widget.prefs.setString(_kTasks, raw);
+    widget.onProgressChanged();
   }
 
   void _toggle(TaskModel task, bool? value) {
+    if (task.isFocusVerifiedTask) return;
     setState(() {
       final i = _tasks.indexWhere((t) => t.id == task.id);
       if (i != -1) {
@@ -61,16 +150,21 @@ class _TasksScreenState extends State<TasksScreen> {
     _saveTasks();
   }
 
-  void _claim(TaskModel task) {
+  Future<void> _claim(TaskModel task) async {
+    final i = _tasks.indexWhere((current) => current.id == task.id);
+    if (i == -1) return;
+
+    final currentTask = _tasks[i];
+    if (!currentTask.isCompleted || currentTask.isClaimed) return;
+
     setState(() {
-      final i = _tasks.indexWhere((t) => t.id == task.id);
-      if (i != -1) {
-        _tasks[i] = task.copyWith(isClaimed: true);
-      }
+      _tasks[i] = currentTask.copyWith(isClaimed: true);
     });
-    _saveTasks();
+    await _saveTasks();
     widget.onWaterPointsChanged(widget.waterPoints + task.rewardPoints);
-    widget.prefs.setInt('water_points', widget.waterPoints + task.rewardPoints);
+    await widget.prefs
+        .setInt('water_points', widget.waterPoints + task.rewardPoints);
+    widget.onProgressChanged();
   }
 
   Future<void> _openAddTaskDialog() async {
@@ -108,7 +202,9 @@ class _TasksScreenState extends State<TasksScreen> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
             TextButton(
               onPressed: () {
                 final title = controller.text.trim();
@@ -159,53 +255,73 @@ class _TasksScreenState extends State<TasksScreen> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Adjusted top padding for clean balance below the App Bar
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('$doneCount of ${_tasks.length} quests done',
-                      style: OasisTextTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold)),
-                  if (toClaim > 0)
-                    Text('+$toClaim Water Points to claim', style: OasisTextTheme.labelSmall),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        Text(
+                          '$doneCount of ${_tasks.length} quests done',
+                          style: OasisTextTheme.bodyMedium
+                              .copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        if (toClaim > 0)
+                          Text('+$toClaim Water Points to claim',
+                              style: OasisTextTheme.labelSmall),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: _tasks.isEmpty ? 0 : doneCount / _tasks.length,
+                      minHeight: 8,
+                      backgroundColor: AppTheme.secondaryColor.withOpacity(0.2),
+                      valueColor:
+                          const AlwaysStoppedAnimation(AppTheme.secondaryColor),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Expanded(
+                    child: _tasks.isEmpty
+                        ? Center(
+                            child: Text('No tasks yet. Add one below.',
+                                style: OasisTextTheme.bodyMedium))
+                        : ListView.builder(
+                            itemCount: _tasks.length,
+                            itemBuilder: (context, i) {
+                              final task = _tasks[i];
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.sm),
+                                child: TaskCardTile(
+                                  task: task,
+                                  todayFocusMinutes:
+                                      widget.prefs.getInt('today_focus_minutes') ??
+                                          0,
+                                  onToggle: (v) => _toggle(task, v),
+                                  onClaim: () => _claim(task),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xs),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: _tasks.isEmpty ? 0 : doneCount / _tasks.length,
-                  minHeight: 8,
-                  backgroundColor: AppTheme.secondaryColor.withOpacity(0.2),
-                  valueColor: const AlwaysStoppedAnimation(AppTheme.secondaryColor),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Expanded(
-                child: _tasks.isEmpty
-                    ? Center(
-                        child: Text('No tasks yet. Add one below.', style: OasisTextTheme.bodyMedium))
-                    : ListView.builder(
-                        itemCount: _tasks.length,
-                        itemBuilder: (context, i) {
-                          final task = _tasks[i];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                            child: TaskCardTile(
-                              task: task,
-                              onToggle: (v) => _toggle(task, v),
-                              onClaim: () => _claim(task),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

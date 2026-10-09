@@ -1,92 +1,58 @@
-# Focus Oasis — progress code
+# Focus Oasis
 
-**Week 2 update:** added the Daily Tasks screen (screen 4). Garden (screens
-1 to 3) and Tasks now share the same lifted `waterPoints` state, so the
-balance chip agrees on both tabs — see "What's implemented" below. Shop is
-still a stub.
+Focus Oasis is a Flutter Pomodoro app where focused work grows a small garden. It includes a focus timer, daily tasks, water points, and a plant shop. The app supports local offline use and optional email accounts backed by Supabase.
 
-This is a working start on the Flutter app, not the mockup. It implements
-**screens 1, 2, 3 and 4** — Home / Garden Timer, the running state, the
-Session Complete dialog, and Daily Tasks — matching `docs/02-mockup.png`
-and `docs/DESIGN_SYSTEM_V3.pdf`. Shop is a stub screen with a "coming soon"
-message so the bottom nav is runnable end to end.
+## Tech stack
 
-**I could not run `flutter analyze` or `flutter run` in the environment that
-wrote this** — no Flutter/Dart SDK was available there. The code follows
-the APIs and syntax I know, and the brace/paren counts balance in every
-file, but treat it as a first draft: run `flutter pub get` then
-`flutter analyze` yourself before you trust it, and read through
-`timer_home_screen.dart` since that's where the real logic lives.
+- Flutter and Dart
+- SharedPreferences for local timer, task, and game state
+- Supabase Auth and Postgres for email accounts, access logs, and per-user progress sync
+- GitHub Actions and GitHub Pages for free static web hosting
 
-## What's implemented
+## Run locally
 
-- `lib/theme/app_theme.dart` — the Design System v3 tokens, including the
-  restyled `WaterPointBadge` colours and the new tint tokens.
-- `lib/models/plant_model.dart` — just enough to grow a plant on Home.
-- `lib/widgets/garden_plant.dart` — the potted plant at stages 1 to 4,
-  drawn with `CustomPainter` so it doesn't need four image assets yet.
-- `lib/widgets/app_logo.dart` — the Ring Sprout mark, also `CustomPainter`
-  for the same reason. Swap for `Image.asset` once you export the PNG.
-- `lib/widgets/timer_ring_display.dart`, `timer_length_stepper.dart`,
-  `session_complete_dialog.dart`, `water_point_badge.dart` — the pieces
-  named in Design System v3 section X.
-- `lib/screens/timer_home_screen.dart` — the real Home screen:
-  `Timer.periodic` countdown, the length stepper (hidden while running),
-  pause/resume, a confirm-then-reset flow, and saving `work_duration` and
-  `water_points` to `shared_preferences`. The timer is cancelled in
-  `dispose()`, which is the memory-leak risk from the midterm journal.
-- `lib/screens/main_navigation_screen.dart` — the bottom nav. It owns
-  `waterPoints` in its own state and passes it down with a callback, which
-  is the state-lifting approach the design system and journal both call
-  out — not Provider or Riverpod, since those aren't in the course.
-- `lib/main.dart` — the `FutureBuilder` loading guard from the async
-  startup risk in the proposal.
-- **(Week 2)** `lib/models/task_model.dart` — `TaskModel` with
-  `isCompleted` and `isClaimed` as separate flags, JSON (de)serialization,
-  and three seed tasks shown the first time the app runs.
-- **(Week 2)** `lib/widgets/task_card_tile.dart` — the three states from
-  Design System v3: uncompleted, completed-and-claimable, claimed.
-- **(Week 2)** `lib/screens/tasks_screen.dart` — the real Tasks screen:
-  progress header, `ListView.builder` over the task list, an add-task
-  dialog with a title field and a reward chip picker, a claim flow that
-  reports the new balance up to `MainNavigationScreen`, and saving
-  `user_tasks` to `shared_preferences` on every change.
+Install the stable Flutter SDK, then:
 
-## What's not implemented yet
-
-- Botanic Shop & Inventory screen (stub only).
-- Editing or deleting a task once added.
-- A completed session doesn't auto-complete the "Focus for 25 minutes"
-  seed task — the person still has to tick it by hand. Wiring that up is
-  the obvious next increment, since `TimerHomeScreen` and `TasksScreen`
-  don't currently talk to each other at all.
-- Session history (`session_history` key) — "Today's focus" currently
-  accumulates in a single `today_focus_minutes` key that never resets at
-  midnight, and "Daily streak" is read from a key nothing increments yet.
-  Both need a real day-boundary check before they're accurate.
-- The break countdown after "Start 5 min break".
-- `audioplayers` completion chime (stretch goal).
-
-## Fix applied after the first run
-
-`flutter run` surfaced two problems, now fixed:
-
-1. **`Couldn't resolve the package 'google_fonts'`** — not a code bug. Run
-   `flutter pub get` before `flutter run` so the dependency in
-   `pubspec.yaml` actually gets fetched.
-2. **`The argument type 'CardTheme' can't be assigned to the parameter type
-   'CardThemeData?'`** — my mistake. Newer Flutter SDKs type
-   `ThemeData.cardTheme` as `CardThemeData`, not the older `CardTheme`
-   class. Fixed in `lib/theme/app_theme.dart`.
-
-Run `flutter pub get` first, every time you pull in a new dependency or
-open the project fresh, then `flutter run -d chrome` again.
-
-## Running it
-
-```
-flutter create . --platforms=web,android,ios   # if you haven't already got the platform folders
+```sh
 flutter pub get
-flutter analyze
 flutter run -d chrome
 ```
+
+In debug mode, Device Preview adds a device selector and frame to the app in Chrome so you can check the mobile layouts at different screen sizes. It is disabled in release builds.
+
+Without Supabase configuration, the app opens in offline mode. To enable email accounts and cross-device progress sync, create a Supabase project and apply both SQL migrations in `supabase/migrations/` using the Supabase SQL Editor.
+
+Copy `.env.example` to `.env.json`, then set your Supabase project URL and **publishable** key (formerly called the anon key). Locally, run:
+
+```sh
+flutter run -d chrome --dart-define-from-file=.env.json
+```
+
+Flutter compiles these values into the client bundle. The URL and publishable key are intended to be public; row-level security protects user data. Never put a Supabase secret/service-role key in `.env.json`, source code, or a web build. `.env.json` is ignored by Git. Authentication passwords are handled by Supabase Auth and are not stored in this app's tables.
+
+The `profiles` table keeps each account's email. `auth_access_logs` stores sign-up/sign-in events. `user_progress` stores the account's points, active plant, timer state, tasks, inventory, and focus totals. Row-level security restricts every account to its own profile, access logs, and progress row. Progress is restored after login and saved when app state changes; active timer state is checkpointed every 15 seconds so another device can resume the remaining time.
+
+## Deploy to a public URL with GitHub Pages
+
+The repository includes a GitHub Actions workflow that builds Flutter Web and publishes it to GitHub Pages on pushes to `main`.
+
+1. Push this repository to GitHub and make it public (GitHub Pages is free for public repositories).
+2. In the repository, open **Settings → Secrets and variables → Actions** and add `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY`. Use the project URL and publishable key from Supabase's project API settings. These are public client configuration values; do not add a secret/service-role key.
+3. In **Settings → Pages**, choose **GitHub Actions** as the build and deployment source.
+4. Push to `main`, or open **Actions → Deploy web demo → Run workflow**. The workflow builds the web app and deploys it.
+5. Open **Settings → Pages** to find the published URL, usually `https://<username>.github.io/<repository>/`.
+6. In Supabase **Authentication → URL Configuration**, add the published URL to the allowed redirect URLs. Configure email confirmation and SMTP settings to match your account policy.
+
+If the Supabase secrets are omitted, the deployment still works in offline mode. Changes to web source require a new Pages build. Local and GitHub Actions builds use the same `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` names.
+
+## Database setup and schema updates
+
+Apply every SQL file in `supabase/migrations/` in timestamp order in the Supabase SQL Editor, or use the Supabase CLI (`supabase db push`) after linking your project. Keep database schema changes in `supabase/migrations/`. Supabase Auth manages credentials and sessions; the app never stores raw passwords or a service-role key.
+
+## Project layout
+
+- `lib/screens/` — login, garden timer, tasks, and shop screens
+- `lib/services/account_service.dart` — sign-in, profile retrieval, and access-log operations
+- `supabase/migrations/` — database schema and row-level security policies
+- `.github/workflows/deploy-web.yml` — GitHub Pages build and deployment
+- `.env.example` — local configuration template (contains placeholders only)

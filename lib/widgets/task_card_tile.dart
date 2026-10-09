@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../theme/app_theme.dart';
-import 'water_point_badge.dart';
+
 
 /// The three states from docs/DESIGN_SYSTEM_V3.pdf section X, TaskCardTile:
 /// uncompleted, completed-not-claimed (shows Claim), and claimed.
 class TaskCardTile extends StatelessWidget {
   final TaskModel task;
+  final int todayFocusMinutes;
   final ValueChanged<bool?> onToggle;
   final VoidCallback onClaim;
 
   const TaskCardTile({
     super.key,
     required this.task,
+    this.todayFocusMinutes = 0,
     required this.onToggle,
     required this.onClaim,
   });
@@ -36,7 +38,9 @@ class TaskCardTile extends StatelessWidget {
               // Once claimed, the checkbox can't be unchecked — the reward
               // is already banked, so undoing it would need to claw the
               // points back. Simplest to just lock it.
-              onChanged: task.isClaimed ? null : onToggle,
+              onChanged: task.isClaimed || task.isFocusVerifiedTask
+                  ? null
+                  : onToggle,
               activeColor: AppTheme.secondaryColor,
               checkColor: AppTheme.textColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -55,6 +59,11 @@ class TaskCardTile extends StatelessWidget {
                       Text('+${task.rewardPoints} Water Points', style: OasisTextTheme.labelSmall),
                     ],
                   ),
+                  if (task.isFocusVerifiedTask && !task.isClaimed)
+                    Text(
+                      'Timer: ${todayFocusMinutes.clamp(0, task.requiredFocusMinutes!)}/${task.requiredFocusMinutes} min',
+                      style: OasisTextTheme.labelSmall.copyWith(fontSize: 10),
+                    ),
                 ],
               ),
             ),
@@ -71,7 +80,7 @@ class TaskCardTile extends StatelessWidget {
                   ],
                 ),
               )
-            else if (task.isCompleted)
+            else
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.secondaryColor,
@@ -79,8 +88,8 @@ class TaskCardTile extends StatelessWidget {
                   minimumSize: const Size(0, 40),
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 ),
-                onPressed: onClaim,
-                child: const Text('Claim'),
+                onPressed: task.isCompleted ? onClaim : null,
+                child: Text(task.isCompleted ? 'Claim' : 'Locked'),
               ),
           ],
         ),

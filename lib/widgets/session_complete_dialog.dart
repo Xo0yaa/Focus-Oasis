@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../models/plant_model.dart';
 import '../theme/app_theme.dart';
 import 'garden_plant.dart';
 import 'water_point_badge.dart';

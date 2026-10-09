@@ -16,6 +16,18 @@ class TaskModel {
     this.isClaimed = false,
   });
 
+  /// Focus-duration tasks are verified from completed timer sessions instead
+  /// of trusting a manually checked box.
+  int? get requiredFocusMinutes {
+    final match = RegExp(
+      r'^\s*focus(?:\s+for)?\s+(\d+)\s*(?:minutes?|mins?)\s*$',
+      caseSensitive: false,
+    ).firstMatch(title);
+    return match == null ? null : int.tryParse(match.group(1)!);
+  }
+
+  bool get isFocusVerifiedTask => requiredFocusMinutes != null;
+
   TaskModel copyWith({bool? isCompleted, bool? isClaimed}) {
     return TaskModel(
       id: id,

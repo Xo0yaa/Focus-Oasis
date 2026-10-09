@@ -21,6 +21,7 @@ class ShopScreen extends StatefulWidget {
   final ValueChanged<int> onWaterPointsChanged;
   final String activePlantId;
   final ValueChanged<String> onActivePlantChanged;
+  final VoidCallback onProgressChanged;
 
   const ShopScreen({
     super.key,
@@ -29,6 +30,7 @@ class ShopScreen extends StatefulWidget {
     required this.onWaterPointsChanged,
     required this.activePlantId,
     required this.onActivePlantChanged,
+    required this.onProgressChanged,
   });
 
   @override
@@ -51,7 +53,9 @@ class _ShopScreenState extends State<ShopScreen> {
     if (raw == null || raw.isEmpty) return List.of(PlantModel.starterCatalog());
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
-      final list = decoded.map((e) => PlantModel.fromJson(e as Map<String, dynamic>)).toList();
+      final list = decoded
+          .map((e) => PlantModel.fromJson(e as Map<String, dynamic>))
+          .toList();
       return list.isEmpty ? List.of(PlantModel.starterCatalog()) : list;
     } catch (_) {
       return List.of(PlantModel.starterCatalog());
@@ -61,6 +65,7 @@ class _ShopScreenState extends State<ShopScreen> {
   Future<void> _saveCatalog() async {
     final raw = jsonEncode(_catalog.map((p) => p.toJson()).toList());
     await widget.prefs.setString(_kInventory, raw);
+    widget.onProgressChanged();
   }
 
   Future<void> _buy(PlantModel plant) async {
@@ -73,8 +78,12 @@ class _ShopScreenState extends State<ShopScreen> {
         title: Text('Buy ${plant.name}?'),
         content: Text('This costs ${plant.cost} Water Points.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Buy')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Buy')),
         ],
       ),
     );
@@ -85,7 +94,8 @@ class _ShopScreenState extends State<ShopScreen> {
     setState(() {
       // FIX: build a new list instead of mutating in place
       _catalog = _catalog
-          .map((p) => p.id == plant.id ? p.copyWith(isUnlocked: true, isNew: true) : p)
+          .map((p) =>
+              p.id == plant.id ? p.copyWith(isUnlocked: true, isNew: true) : p)
           .toList();
     });
 
@@ -94,6 +104,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
     await _saveCatalog();
     await widget.prefs.setInt('water_points', newBalance);
+    widget.onProgressChanged();
   }
 
   Future<void> _place(PlantModel plant) async {
@@ -107,6 +118,7 @@ class _ShopScreenState extends State<ShopScreen> {
     await _saveCatalog();
     widget.onActivePlantChanged(plant.id);
     await widget.prefs.setString('active_plant_id', plant.id);
+    widget.onProgressChanged();
   }
 
   @override
@@ -125,25 +137,34 @@ class _ShopScreenState extends State<ShopScreen> {
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppSpacing.sm),
-              SegmentedButton<int>(
-                segments: const [
-                  ButtonSegment(value: 0, label: Text('Shop')),
-                  ButtonSegment(value: 1, label: Text('Inventory')),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SegmentedButton<int>(
+                    segments: const [
+                      ButtonSegment(value: 0, label: Text('Shop')),
+                      ButtonSegment(value: 1, label: Text('Inventory')),
+                    ],
+                    selected: {_view},
+                    onSelectionChanged: (s) => setState(() => _view = s.first),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Expanded(
+                    child: _view == 0
+                        ? _buildShop(unowned, owned)
+                        : _buildInventory(owned),
+                  ),
                 ],
-                selected: {_view},
-                onSelectionChanged: (s) => setState(() => _view = s.first),
               ),
-              const SizedBox(height: AppSpacing.md),
-              Expanded(
-                child: _view == 0 ? _buildShop(unowned, owned) : _buildInventory(owned),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -176,7 +197,8 @@ class _ShopScreenState extends State<ShopScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CollectionCard(unlockedCount: owned.length, catalogSize: _catalog.length),
+          CollectionCard(
+              unlockedCount: owned.length, catalogSize: _catalog.length),
           const SizedBox(height: AppSpacing.md),
           GridView.builder(
             shrinkWrap: true,
@@ -190,10 +212,12 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
             itemBuilder: (context, i) {
               if (i == owned.length) {
-                return EmptyShopSlotCard(onTap: () => setState(() => _view = 0));
+                return EmptyShopSlotCard(
+                    onTap: () => setState(() => _view = 0));
               }
               final plant = owned[i];
-              return InventoryItemCard(plant: plant, onPlace: () => _place(plant));
+              return InventoryItemCard(
+                  plant: plant, onPlace: () => _place(plant));
             },
           ),
         ],

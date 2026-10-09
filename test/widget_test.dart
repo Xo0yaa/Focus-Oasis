@@ -4,24 +4,23 @@
 // You are not required to write more of these, but a project with a few real
 // tests reads very differently from one with none.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:focus_oasis/main.dart';
 
 void main() {
-  testWidgets('home screen shows its title and counts taps', (tester) async {
-    // Build the app. Note we build the root app directly, not the DevicePreview
-    // wrapper, because a test does not need the phone frame.
-    await tester.pumpWidget(const FocusOasisApp());
+  testWidgets('login screen shows the app title and offline option',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
 
-    expect(find.text('It works'), findsOneWidget);
-    expect(find.text('Taps: 0'), findsOneWidget);
+    // Build the app directly so the test does not display the preview frame.
+    await tester.pumpWidget(
+      FocusOasisApp(prefs: prefs, hasSupabaseConfig: false),
+    );
 
-    // Tap the button, then let the widget rebuild.
-    await tester.tap(find.byType(FilledButton));
-    await tester.pump();
-
-    expect(find.text('Taps: 1'), findsOneWidget);
+    expect(find.text('Focus Oasis'), findsOneWidget);
+    expect(find.text('Continue Offline'), findsOneWidget);
   });
 }

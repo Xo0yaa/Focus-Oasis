@@ -6,24 +6,12 @@ name: Deploy web demo
 # Before this works, turn Pages on once: repository Settings > Pages >
 # Build and deployment > Source: GitHub Actions.
 #
-# CONFIG AND SECRETS. Values compiled into a web build are readable by anyone who
-# visits the site, so it matters which kind you are shipping:
+# Values compiled into a web build are readable by anyone who visits the site.
+# Only the Supabase URL and publishable key belong in this client build. RLS
+# policies, rather than secrecy of the publishable key, protect user data.
 #
-#   Safe to ship: project identifiers whose data is protected by rules, i.e. the
-#   Firebase config in firebase_options.dart and the Supabase URL plus publishable
-#   key. Both vendors document these as safe to expose in a client. Your Firestore
-#   rules and your Supabase RLS policies are what actually protect the data.
-#
-#   NOT safe to ship: anything billable or privileged. A Gemini API key, a
-#   Supabase secret (service_role) key, a service account JSON. A stranger can
-#   read these off your deployed site and spend your quota. Keep those features
-#   local and demo them on video, or put a server in front.
-#
-# Whatever you do pass in, put it in Settings > Secrets and variables > Actions
-# and reference it below. Never write a key literally in this file: it is public.
-#
-# Step by step, with the Dart side and the usual mistakes: page 12 of
-# content/extending-your-app/ in your course workspace.
+# Add SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY under repository Settings >
+# Secrets and variables > Actions. Never add a Supabase secret/service_role key.
 
 on:
   push:
@@ -87,17 +75,16 @@ jobs:
       - name: Build web
         if: steps.check.outputs.ready == 'true'
         env:
-          # Uncomment to match the repository secrets you actually created.
-          # SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          # SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
-          DUMMY: unused
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         # --base-href matters: on a project page the site lives at
         # username.github.io/<repo>/, and without it every asset 404s and you get
         # a white screen.
         run: |
           flutter build web --release \
-            --base-href "/${{ github.event.repository.name }}/"
-          # add one --dart-define=NAME=$NAME line per secret you uncommented above
+            --base-href "/${{ github.event.repository.name }}/" \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY"
 
       - if: steps.check.outputs.ready == 'true'
         uses: actions/upload-pages-artifact@v5
