@@ -334,12 +334,12 @@ class _TimerHomeScreenState extends State<TimerHomeScreen> {
               constraints.maxWidth - AppSpacing.lg * 2,
             ).toDouble();
             final availableHeight =
-                math.max(0.0, constraints.maxHeight * 0.29).toDouble();
-            // Scale the ring to keep the selector, action, and stats visible
-            // above navigation on common phone-sized viewports.
+                math.max(0.0, constraints.maxHeight * 0.36).toDouble();
+            // Give the timer more visual weight while keeping enough room for
+            // the controls and stats on short phone screens.
             final ringDiameter = math.min(
-              264.0,
-              math.max(132.0, math.min(availableWidth, availableHeight)),
+              280.0,
+              math.max(144.0, math.min(availableWidth, availableHeight)),
             ).toDouble();
 
             return Center(
@@ -362,7 +362,7 @@ class _TimerHomeScreenState extends State<TimerHomeScreen> {
                               progress: isIdle ? 0 : 1 - _progress,
                               species: widget.activePlantId,
                             ),
-                            const Spacer(flex: 3),
+                            const Spacer(flex: 2),
                             TimerRingDisplay(
                               diameter: ringDiameter,
                               progress: _progress,

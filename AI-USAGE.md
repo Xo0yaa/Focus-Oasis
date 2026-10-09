@@ -124,16 +124,18 @@ prompt. Keep adding entries as you continue working.
 
 ## 3. Who wrote what
 
-Git lists you as the author of commits, but that alone does not prove which code
-you personally wrote. Fill in the first section with work you can honestly
-explain and claim; the assignment requires at least 20% of the project code to
-be yours.
-
 ### Written by me
 
-- **File:** `[Name a file or feature you personally wrote]`
-- **Commit:** `[Link the commit that contains your work]`
-- **What it does and why it is built this way:** `[Explain this in your own words. Be specific about the parts you wrote.]`
+- **File:** `lib/theme/app_theme.dart`, `lib/widgets/app_logo.dart`, and
+  `lib/screens/main_navigation_screen.dart`
+- **Commit:** [Update Week 2 documentation, reports, and theme configs](https://github.com/Xo0yaa/Focus-Oasis/commit/0cf92556d79399346cb953b5d1c06986b7e7ed9d)
+- **What it does and why it is built this way:** I wrote the shared theme so
+  the app uses the same colors, text styles, spacing, and button/navigation
+  styles across its screens. I drew the logo with Flutter's canvas tools so it
+  can scale to different sizes without needing a separate image asset. I also
+  wrote the main navigation to switch between Garden, Tasks, and Shop while
+  keeping their screens in the app. Keeping these parts shared makes the app
+  feel consistent and makes it easier to change the design in one place.
 
 ### The AI-written part I understand best
 
