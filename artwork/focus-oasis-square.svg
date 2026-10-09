@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-labelledby="title description">
+  <title id="title">Focus Oasis</title>
+  <desc id="description">A square promotional graphic for the Focus Oasis focus timer and virtual garden app, created by John Feliciano Suarez Mallari.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8FCFA"/>
+      <stop offset="1" stop-color="#EEF7F2"/>
+    </linearGradient>
+    <linearGradient id="phone" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#334B5B"/>
+      <stop offset="1" stop-color="#1D3444"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#173344" flood-opacity="0.16"/>
+    </filter>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#193244" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <!-- Soft, botanical background -->
+  <rect width="1080" height="1080" rx="54" fill="url(#background)"/>
+  <circle cx="962" cy="138" r="150" fill="#DDEFE5" opacity="0.78"/>
+  <circle cx="104" cy="810" r="174" fill="#E7F3EB" opacity="0.9"/>
+  <path d="M0 941 C180 878 271 978 431 942 C624 899 746 861 1080 939 L1080 1080 L0 1080Z" fill="#E4F0E8"/>
+  <path d="M0 987 C181 945 278 1016 443 982 C645 939 815 926 1080 985 L1080 1080 L0 1080Z" fill="#D8EBDD"/>
+
+  <!-- Brand mark -->
+  <g transform="translate(116 104)">
+    <circle cx="44" cy="44" r="40" fill="#FFFFFF"/>
+    <circle cx="44" cy="44" r="29" fill="none" stroke="#F9D7D3" stroke-width="7"/>
+    <path d="M44 15 A29 29 0 1 1 22 63" fill="none" stroke="#E74C3C" stroke-width="7" stroke-linecap="round"/>
+    <path d="M44 54V35" stroke="#2ECC71" stroke-width="4" stroke-linecap="round"/>
+    <path d="M43 44C34 44 30 39 30 32C38 32 43 36 43 44Z" fill="#2ECC71"/>
+    <path d="M45 38C45 30 50 26 58 26C58 34 53 38 45 38Z" fill="#2ECC71"/>
+    <path d="M34 56Q44 50 54 56" fill="none" stroke="#2C3E50" stroke-width="3.5" stroke-linecap="round"/>
+  </g>
+  <text x="222" y="143" fill="#2C3E50" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="700" letter-spacing="3">FOCUS OASIS</text>
+  <text x="964" y="139" text-anchor="end" fill="#567263" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="2">FOCUS • GROW • REPEAT</text>
+
+  <!-- Headline -->
+  <text x="540" y="231" text-anchor="middle" fill="#203A4B" font-family="Inter, Arial, sans-serif" font-size="57" font-weight="800" letter-spacing="1">Focus Oasis</text>
+  <text x="540" y="273" text-anchor="middle" fill="#5D7180" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="400">Focus your mind. Grow your garden.</text>
+
+  <!-- Phone frame -->
+  <g filter="url(#shadow)">
+    <rect x="325" y="313" width="430" height="639" rx="56" fill="url(#phone)"/>
+    <rect x="337" y="325" width="406" height="615" rx="47" fill="#101A20"/>
+    <rect x="348" y="337" width="384" height="591" rx="39" fill="#FCFCFC"/>
+  </g>
+  <path d="M482 337H598Q604 337 604 344V350Q604 359 595 359H485Q476 359 476 350V344Q476 337 482 337Z" fill="#101A20"/>
+  <circle cx="614" cy="348" r="5" fill="#263944"/>
+
+  <!-- App header -->
+  <text x="378" y="404" fill="#2C3E50" font-family="Inter, Arial, sans-serif" font-size="23" font-weight="750">Focus Oasis</text>
+  <rect x="626" y="379" width="78" height="34" rx="17" fill="#FFFFFF" stroke="#3498DB" stroke-width="2"/>
+  <path d="M644 389C640 395 641 400 646 400C651 400 652 395 648 389L646 386Z" fill="#3498DB"/>
+  <text x="665" y="402" fill="#203A4B" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="700">150</text>
+
+  <!-- Plant status card -->
+  <g filter="url(#cardShadow)">
+    <rect x="370" y="430" width="340" height="83" rx="17" fill="#FFFFFF"/>
+  </g>
+  <rect x="384" y="444" width="54" height="54" rx="13" fill="#E3F6ED"/>
+  <path d="M411 483V461" stroke="#168D58" stroke-width="3" stroke-linecap="round"/>
+  <path d="M410 470C403 470 400 466 400 460C406 460 410 463 410 470Z" fill="#2ECC71"/>
+  <path d="M412 466C412 460 416 457 422 457C422 463 418 466 412 466Z" fill="#2ECC71"/>
+  <path d="M400 477H423L420 488H403Z" fill="#2C3E50"/>
+  <text x="451" y="464" fill="#2C3E50" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="650">Sampaguita</text>
+  <text x="451" y="485" fill="#687A86" font-family="Inter, Arial, sans-serif" font-size="12">Seedling, stage 1 of 4</text>
+  <rect x="451" y="494" width="238" height="7" rx="4" fill="#D8EAF2"/>
+  <rect x="451" y="494" width="120" height="7" rx="4" fill="#3498DB"/>
+
+  <!-- Timer ring and center plant -->
+  <circle cx="540" cy="665" r="119" fill="none" stroke="#F9DEDB" stroke-width="13"/>
+  <path d="M540 546A119 119 0 1 1 456 749" fill="none" stroke="#E74C3C" stroke-width="13" stroke-linecap="round"/>
+  <path d="M540 651V619" stroke="#148A55" stroke-width="4" stroke-linecap="round"/>
+  <path d="M538 635C527 635 522 629 522 619C532 619 538 625 538 635Z" fill="#2ECC71"/>
+  <path d="M542 627C542 617 548 612 558 612C558 622 552 627 542 627Z" fill="#2ECC71"/>
+  <path d="M515 646H565L559 665H521Z" fill="#2C3E50"/>
+  <text x="540" y="713" text-anchor="middle" fill="#203A4B" font-family="Inter, Arial, sans-serif" font-size="52" font-weight="750">25:00</text>
+  <text x="540" y="739" text-anchor="middle" fill="#607381" font-family="Inter, Arial, sans-serif" font-size="14">Focus session</text>
+  <text x="540" y="801" text-anchor="middle" fill="#607381" font-family="Inter, Arial, sans-serif" font-size="14">Cycle 1 of 4</text>
+
+  <!-- Action and daily stats -->
+  <rect x="371" y="823" width="338" height="47" rx="13" fill="#E74C3C"/>
+  <path d="M514 838L514 855L528 846.5Z" fill="#FFFFFF"/>
+  <text x="550" y="853" text-anchor="middle" fill="#FFFFFF" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700">Start Session</text>
+  <rect x="371" y="882" width="164" height="35" rx="11" fill="#FFFFFF" stroke="#E7ECEF"/>
+  <circle cx="392" cy="899" r="11" fill="#3498DB"/>
+  <path d="M392 892V899L397 902" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  <text x="410" y="896" fill="#607381" font-family="Inter, Arial, sans-serif" font-size="10">Today's focus</text>
+  <text x="410" y="910" fill="#203A4B" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">0 hr 0 min</text>
+  <rect x="545" y="882" width="164" height="35" rx="11" fill="#FFFFFF" stroke="#E7ECEF"/>
+  <circle cx="566" cy="899" r="11" fill="#F1C40F"/>
+  <path d="M566 891C561 897 563 903 566 903C571 903 571 897 566 891Z" fill="#FFFFFF"/>
+  <text x="584" y="896" fill="#607381" font-family="Inter, Arial, sans-serif" font-size="10">Daily streak</text>
+  <text x="584" y="910" fill="#203A4B" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="700">1 day</text>
+
+  <!-- Bottom navigation -->
+  <path d="M348 921H732" stroke="#E5E7EB"/>
+  <rect x="374" y="923" width="79" height="5" rx="2.5" fill="#FCFCFC"/>
+
+  <!-- Creator credit -->
+  <rect x="216" y="978" width="648" height="62" rx="31" fill="#FFFFFF" stroke="#DFEAE2" stroke-width="2"/>
+  <circle cx="254" cy="1009" r="15" fill="#E3F6ED"/>
+  <path d="M254 1017V1004M253 1010C249 1010 247 1007 247 1003C251 1003 253 1006 253 1010ZM255 1007C255 1003 258 1001 262 1001C262 1005 259 1007 255 1007Z" fill="none" stroke="#198653" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="286" y="1015" fill="#607381" font-family="Inter, Arial, sans-serif" font-size="13" font-weight="600" letter-spacing="1">CREATED BY</text>
+  <text x="410" y="1015" fill="#203A4B" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="750">John Feliciano Suarez Mallari</text>
+</svg>
