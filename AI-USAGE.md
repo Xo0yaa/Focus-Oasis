@@ -84,8 +84,7 @@ prompt. Keep adding entries as you continue working.
   block authentication.
 - **What I kept, what I changed, and why:** I kept the reliability fix while
   retaining the profile and log retrieval methods for future account screens.
-- **Commit:** The fix is currently uncommitted. Add its GitHub commit link after
-  committing the change.
+- **Commit:** [Update Focus Oasis app](https://github.com/Xo0yaa/Focus-Oasis/commit/297bab6a00edd434f4d16ca88042991c8c5a39f5)
 
 ## 2. Where the AI got it wrong
 
